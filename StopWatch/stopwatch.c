@@ -1,5 +1,6 @@
 /*
  * stopwatch.c
+ * Created on: May 29, 2021
  * Author: Muhammad Farid
  *
  * Description: It is a stop watch project (Hours : Minutes : Seconds), using timers and external interrupts.
@@ -19,11 +20,9 @@
 volatile unsigned char g_Hours = 0;
 unsigned char g_HoursUnits = 0;
 unsigned char g_HoursTens = 0;
-
 volatile unsigned char g_Minutes = 0;
 unsigned char g_MinutesUnits = 0;
 unsigned char g_MinutesTens = 0;
-
 volatile unsigned char g_Seconds = 0;
 unsigned char g_SecondsUnits = 0;
 unsigned char g_SecondsTens = 0;
@@ -131,28 +130,42 @@ int main(void){
 		g_HoursUnits = g_Hours % 10;
 		g_HoursTens = g_Hours / 10;
 
-		PORTA = 0x01;							/* Set first pin in PORTA, initializing first 7 segment */
-		PORTC = (PORTC & 0xF0) | (g_SecondsUnits & 0x0F);                 /* Display units of seconds on first 7 segment */
-		_delay_ms(2);
 
-		PORTA = (PORTA<<1);						/* Enable seconds 7 segment by shifting left by 1 */
-		PORTC = (PORTC & 0xF0) | (g_SecondsTens & 0x0F);
-		_delay_ms(2);
+		/* By clearing and setting PORTA registers we allow multiplexed output on 7 segment
+		 * reducing decoders and pins used in our setup, a delay of 3ms allows human eye to
+		 * see 7 segments as if they are always on, then writing on PORTC the need to be displayed
+		 * values, bit masking is used as not to corrupt other pin status of PORTC in case of
+		 * generic application ( Not specifically to this application ) */
 
-		PORTA = (PORTA<<1);
-		PORTC = (PORTC & 0xF0) | (g_MinutesUnits & 0x0F);
-		_delay_ms(2);
+		PORTA &= 0xC0;											/* Set Sixth pin in PORTA, enabling Sixth 7 segment */
+		PORTA |= (1<<PA5);
+		PORTC = (PORTC & 0xF0) | (g_SecondsUnits & 0x0F);       /* Display units of seconds on first 7 segment */
+		_delay_ms(3);
 
-		PORTA = (PORTA<<1);
-		PORTC = (PORTC & 0xF0) | (g_MinutesTens & 0x0F);
-		_delay_ms(2);
+		PORTA &= 0xC0;											/* Set Fifth pin in PORTA, enabling Fifth 7 segment */
+		PORTA |= (1<<PA4);
+		PORTC = (PORTC & 0xF0) | (g_SecondsTens & 0x0F);		/* Displaying Tens of seconds on second 7 segment */
+		_delay_ms(3);
 
-		PORTA = (PORTA<<1);
-		PORTC = (PORTC & 0xF0) | (g_HoursUnits & 0x0F);
-		_delay_ms(2);
+		PORTA &= 0xC0;											/* Set Fourth pin in PORTA, enabling Fourth 7 segment */
+		PORTA |= (1<<PA3);
+		PORTC = (PORTC & 0xF0) | (g_MinutesUnits & 0x0F);		/* Displaying Units of Minutes on Third 7 segment */
+		_delay_ms(3);
 
-		PORTA = (PORTA<<1);
-		PORTC = (PORTC & 0xF0) | (g_HoursTens & 0x0F);
-		_delay_ms(2);
+		PORTA &= 0xC0;											/* Set Third pin in PORTA, enabling Third 7 segment */
+		PORTA |= (1<<PA2);
+		PORTC = (PORTC & 0xF0) | (g_MinutesTens & 0x0F);		/* Displaying Tens of Minutes on Fourth 7 segment */
+		_delay_ms(3);
+
+		PORTA &= 0xC0;											/* Set Second pin in PORTA, enabling Second 7 segment */
+		PORTA |= (1<<PA1);
+		PORTC = (PORTC & 0xF0) | (g_HoursUnits & 0x0F);			/* Displaying Units of Hours on Fifth 7 segment */
+		_delay_ms(3);
+
+		PORTA &= 0xC0;											/* Set First pin in PORTA, enabling first 7 segment */
+		PORTA |= (1<<PA0);
+		PORTC = (PORTC & 0xF0) | (g_HoursTens & 0x0F);			/* Displaying Tens of Hours on Sixth 7 segment */
+		_delay_ms(3);
 	}
 }
+
